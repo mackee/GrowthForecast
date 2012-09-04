@@ -570,7 +570,7 @@ get '/{method:(?:xport|graph|summary)}/:complex' => sub {
 };
 
 
-get '/{method:(?:xport|graph|summary)}/:service_name/:section_name/:graph_name' => [qw/get_graph/] => sub {
+get '/{method:(?:xport|graph|summary|csv)}/:service_name/:section_name/:graph_name' => [qw/get_graph/] => sub {
     my ( $self, $c )  = @_;
     my $result = $c->req->validator($GRAPH_VALIDATOR);
 
@@ -586,6 +586,19 @@ get '/{method:(?:xport|graph|summary)}/:service_name/:section_name/:graph_name' 
             $c->stash->{graph}, $result->valid->as_hashref
         );
         $c->render_json($data);
+    }
+    elsif ( $c->args->{method} eq 'csv' ) {
+        my $data = $self->rrd->export(
+            $c->stash->{graph}, $result->valid->as_hashref
+        );
+        my $row_count = scalar(@{$data->{rows}});
+        my $csv_rows = [ 'timestamp', @{$data->{column_names}} ];
+        for my $row_index (0..$row_count-1) {
+            my $timestamp = localtime($data->{start_timestamp} + $row_index * $data->{step});
+            push @$csv_rows, [ $timestamp->strftime('%Y/%m/%d %T'), @{$data->{rows}-[$row_index]} ];
+        }
+        $c->stash->{rows} = $csv_rows;
+        $c->render('csv.tx', {rows=>$c->stash->{rows}});
     }
     else {
         my $data = $self->rrd->export(

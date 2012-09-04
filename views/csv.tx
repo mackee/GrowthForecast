@@ -1,0 +1,11 @@
+: cascade base
+: around page_header -> {
+: }
+
+: around content -> {
+: for $csv_data ->  $row {
+    <: join ',', $row :>
+: }
+
+: }
+
