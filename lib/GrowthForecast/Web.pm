@@ -592,13 +592,13 @@ get '/{method:(?:xport|graph|summary|csv)}/:service_name/:section_name/:graph_na
             $c->stash->{graph}, $result->valid->as_hashref
         );
         my $row_count = scalar(@{$data->{rows}});
-        my $csv_rows = [ 'timestamp', @{$data->{column_names}} ];
+        my $csv_rows = join(',', 'timestamp', @{$data->{column_names}})."\n";
         for my $row_index (0..$row_count-1) {
             my $timestamp = localtime($data->{start_timestamp} + $row_index * $data->{step});
-            push @$csv_rows, [ $timestamp->strftime('%Y/%m/%d %T'), @{$data->{rows}-[$row_index]} ];
+            $csv_rows .= join($timestamp->strftime('%Y/%m/%d %T'), @{$data->{rows}->[$row_index]})."\n";
         }
-        $c->stash->{rows} = $csv_rows;
-        $c->render('csv.tx', {rows=>$c->stash->{rows}});
+        $c->res->content_type('text/plain');
+        $c->res->body($csv_rows);
     }
     else {
         my $data = $self->rrd->export(
