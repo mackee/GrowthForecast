@@ -595,7 +595,7 @@ get '/{method:(?:xport|graph|summary|csv)}/:service_name/:section_name/:graph_na
         my $csv_rows = join(',', 'timestamp', @{$data->{column_names}})."\n";
         my $row_index = 0;
         for my $row (@{$data->{rows}}) {
-            next if undef ~~ @$row;
+            $row = [ map { defined $_ ? $_ : "undef" } ];
             my $timestamp = localtime($data->{start_timestamp} + $row_index * $data->{step});
             $csv_rows .= join(',', $timestamp->strftime('%Y/%m/%d %T'), @$row)."\n";
             $row_index++;
