@@ -593,10 +593,11 @@ get '/{method:(?:xport|graph|summary|csv)}/:service_name/:section_name/:graph_na
         );
         my $row_count = scalar(@{$data->{rows}});
         my $csv_rows = join(',', 'timestamp', @{$data->{column_names}})."\n";
-        for my $row_index (0..$row_count-1) {
-            last if !(defined $data->{rows}->[$row_index]);
+        my $row_index = 0;
+        for my $row (@{$data->{rows}}) {
             my $timestamp = localtime($data->{start_timestamp} + $row_index * $data->{step});
-            $csv_rows .= join($timestamp->strftime('%Y/%m/%d %T'), @{$data->{rows}->[$row_index]})."\n";
+            $csv_rows .= join(',', $timestamp->strftime('%Y/%m/%d %T'), @$row)."\n";
+            $row_index++;
         }
         $c->res->content_type('text/plain');
         $c->res->body($csv_rows);
