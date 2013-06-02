@@ -9,15 +9,15 @@ use Time::Piece;
 use GrowthForecast::Data;
 use GrowthForecast::RRD;
 use Log::Minimal;
-use Class::Accessor::Lite ( rw => [qw/short mysql data_dir/] );
+use Class::Accessor::Lite ( rw => [qw/short mysql data_dir is_float/] );
 use CGI;
 
 sub data {
     my $self = shift;
     $self->{__data} ||= 
         $self->mysql 
-            ? GrowthForecast::Data::MySQL->new($self->mysql)
-            : GrowthForecast::Data->new($self->data_dir);
+            ? GrowthForecast::Data::MySQL->new($self->mysql, $self->is_float)
+            : GrowthForecast::Data->new($self->data_dir, $self->is_float);
     $self->{__data};
 }
 
@@ -788,7 +788,8 @@ post '/api/:service_name/:section_name/:graph_name' => sub {
         'number' => {
             rule => [
                 ['NOT_NULL','number is missing'],
-                ['INT','a integral number is required for "number"']
+                #['INT','a integral number is required for "number"']
+                [sub{ $_[1] =~ m!([0-9]\.)+!i },'a integral number is required for "number"']
             ],
         },
         'mode' => {

@@ -8,8 +8,18 @@ use Scope::Container::DBI;
 sub new {
     my $class = shift;
     my $mysql = shift;
-    bless { mysql => $mysql }, $class;
+    my $is_float = shift;
+    bless {
+        mysql => $mysql,
+        is_float => $is_float,
+    }, $class;
 }
+
+sub number_type {
+    my $self = shift;
+    return $self->{is_float} ? 'FLOAT' : 'BIGINT';
+}
+
 
 sub on_connect {
     my $self = shift;
@@ -22,7 +32,7 @@ CREATE TABLE IF NOT EXISTS graphs (
     service_name VARCHAR(255) NOT NULL COLLATE utf8_bin,
     section_name VARCHAR(255) NOT NULL COLLATE utf8_bin,
     graph_name   VARCHAR(255) NOT NULL COLLATE utf8_bin,
-    number       BIGINT NOT NULL DEFAULT 0,
+    number       $self->number_type NOT NULL DEFAULT 0,
     mode         VARCHAR(255) NOT NULL DEFAULT 'gauge',
     description  VARCHAR(255) NOT NULL DEFAULT '',
     sort         INT UNSIGNED NOT NULL DEFAULT 0,

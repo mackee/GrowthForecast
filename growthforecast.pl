@@ -32,6 +32,7 @@ GetOptions(
     'front-proxy=s' => \@front_proxy,
     'allow-from=s' => \@allow_from,
     'disable-1min-metrics' => \my $disable_short,
+    'enable-number-in-float' => \my $is_float,
     'with-mysql=s' => \my $mysql,
     'data-dir=s' => \my $data_dir,
     'log-format=s' => \my $log_format,
@@ -100,6 +101,7 @@ $proclet->service(
             data_dir => $data_dir,
             short => !$disable_short,
             mysql => $mysql,
+            is_float => $is_float,
         );
         my $app = builder {
             enable 'Lint';
